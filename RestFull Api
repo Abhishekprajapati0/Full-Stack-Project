@@ -1,0 +1,59 @@
+const express = require("express");
+const mongoose = require("mongoose");
+
+const app = express();
+const port = 3000;
+mongoose
+  .connect("mongodb://localhost:27017/data")
+  .then(() => {
+    console.log("connect database");
+  })
+  .catch((error) => console.log(error));
+const testSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  password: String,
+  message: String,
+});
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+const userData = mongoose.model("userdata", testSchema);
+app.get("/", (req, res) => {
+  res.send("hello from the my site");
+});
+
+app.post("/register", async (req, res) => {
+  const { name, email, passeord, message } = req.body;
+  const newUser = await userData.create(req.body);
+  newUser.save();
+  res.send("user registed");
+});
+app.post("/loging", async (req, res) => {
+  const { name, email, password, massege } = req.body;
+  const check = await userData.findById({ email: email, password: password });
+});
+if(check) {
+  res.send("/register");
+} else {
+  res.send("user loged");
+}
+app.get("/chekapi", async (req, res) => {
+  const data = await userData.find();
+  res.send(data);
+});
+app.put("/updata/api/:id", async (req, res) => {
+  const id = req.params.id;
+  const updata = await userData.findBynId(id);
+  updata.name = req.body.name;
+  res.send(updata);
+});
+app.delete("/delete/api/:id", async (req, res) => {
+  const id = req.params.id;
+  const data = await userData.findBynId(id);
+  data.delete();
+  res.send("data deleted");
+});
+app.listen(port, () => {
+  console.log("server is running on port 3000");
+});
