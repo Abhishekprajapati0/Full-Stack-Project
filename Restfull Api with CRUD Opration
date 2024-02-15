@@ -1,92 +1,51 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const app = express();
-const mongoose = require("mongoose");
-
 mongoose
-  .connect("mongodb://localhost:27017/testdata", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect("mongodb://localhost:27017/testdata")
   .then(() => {
-    console.log("Connected to the database");
+    console.log("connected db");
   })
-  .catch((err) => {
-    console.error("Error connecting to the database:", err);
+  .catch((error) => {
+    console.log(error);
   });
-
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 const UserSchema = new mongoose.Schema({
   name: String,
   username: String,
   email: String,
   password: String,
 });
+const Data = new mongoose.model("collectdata", UserSchema);
 
-const UserData = mongoose.model("userdata", UserSchema);
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-
-// Create API
 app.post("/register", async (req, res) => {
-  try {
-    const user = new UserData({
-      name: "abhishek",
-      age: 19,
-      city: "uttar pradesh",
-    });
-
-    const savedUser = await user.save();
-    console.log(savedUser);
-    res.status(201).json(savedUser);
-  } catch (error) {
-    console.error("Error creating user:", error);
-    res.status(500).send("Internal Server Error");
-  }
+  const { name, username, email, password } = req.body;
+  const userdata = await Data.create({
+    name: "abhishek",
+    username: "abhishekprajapati",
+    email: "ap2341@gmail.come",
+    password: "123454321",
+  });
+  console.log(userdata);
 });
 
-// Read API
-app.get("/api/v1/views", async (req, res) => {
-  try {
-    const userdata = await UserData.find();
-    console.log(userdata);
-    res.json(userdata);
-  } catch (error) {
-    console.error("Error retrieving data:", error);
-    res.status(500).send("Internal Server Error");
-  }
+app.get("/apifind", async (req, res) => {
+  const seedata = await Data.find();
+  console.log(seedata);
 });
 
-// Update API
-app.put("/api/v1/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const updatedData = await UserData.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
-    console.log(updatedData);
-    res.json(updatedData);
-  } catch (error) {
-    console.error("Error updating data:", error);
-    res.status(500).send("Internal Server Error");
-  }
+app.put("/api/updata/:1d", async (req, res) => {
+  let id = req.params.id;
+  const Updtadata = await Data.findByIdAndUpdate(id, req.body, { new: true });
+  console.log(Updadata);
 });
-
-// Delete API
-app.delete("/api/v1/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
-    const deletedData = await UserData.findByIdAndDelete(id);
-    console.log(deletedData);
-    res.json(deletedData);
-  } catch (error) {
-    console.error("Error deleting data:", error);
-    res.status(500).send("Internal Server Error");
-  }
+app.delete("/api/delete?:id", async (req, res) => {
+  let id = req.params.id;
+  const deldata = await Data.findByIdAndDelete(id);
+  console.log("data has beensuccesfully deleted", deldata);
 });
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+app.listen(4000, () => {
+  console.log("server ids strarting");
 });
